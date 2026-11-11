@@ -1,0 +1,15 @@
+{
+  "name": "mini-agent",
+  "version": "0.1.0",
+  "description": "Agente local de desenvolvimento assistido por LLM",
+  "main": "src/app.js",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/app.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "better-sqlite3": "^13.1.1"
+  }
+}

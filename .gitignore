@@ -1,0 +1,23 @@
+# Dependências
+node_modules/
+
+# Banco de dados
+*.db
+*.sqlite
+*.sqlite3
+
+# Variáveis de ambiente
+.env
+.env.*
+
+# Logs
+*.log
+logs/
+
+# Arquivos temporários
+tmp/
+temp/
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
