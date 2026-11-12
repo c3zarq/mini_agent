@@ -70,6 +70,28 @@ db.exec(`
             ON DELETE CASCADE
     );
 
+    CREATE TABLE IF NOT EXISTS tasks (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        project_id INTEGER NOT NULL,
+        code TEXT NOT NULL,
+        phase_code TEXT NOT NULL,
+        title TEXT NOT NULL,
+        expected_result TEXT NOT NULL,
+        position INTEGER NOT NULL,
+        status TEXT NOT NULL DEFAULT 'pending',
+        is_active INTEGER NOT NULL DEFAULT 1,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+
+        UNIQUE (project_id, code),
+
+        CHECK (status IN ('pending', 'in_progress', 'completed', 'blocked')),
+
+        FOREIGN KEY (project_id)
+            REFERENCES projects(id)
+            ON DELETE CASCADE
+    );
+
 `);
 
 // Cadastrar projeto

@@ -408,31 +408,55 @@ Durante os experimentos, serão observadas as métricas de avaliação de contex
 
 # 7. Gerenciamento da EAP
 
-A EAP será representada por um documento Markdown.
+A Estrutura Analítica do Projeto (EAP) será representada por um documento Markdown denominado `EAP.md`.
 
-A estrutura deverá utilizar identificadores estáveis para as etapas e tarefas.
+O documento deverá seguir um formato padronizado, permitindo que a aplicação identifique automaticamente as etapas e tarefas do projeto.
+
+## 7.1. Estrutura e identificação
+
+### Identificação das etapas
+
+Cada etapa será identificada por um título de segundo nível, utilizando a seguinte sintaxe:
+
+```markdown
+## P01 — Nome da etapa
+```
+
+Os identificadores deverão seguir o padrão `P` seguido de dois dígitos numéricos, iniciando em `P01`.
+
+### Identificação das tarefas
+
+As tarefas deverão ser organizadas em tabelas Markdown, utilizando obrigatoriamente as seguintes colunas:
+
+| ID | Tarefa | Resultado esperado |
+|---|---|---|
+
+Cada tarefa será identificada por um código no formato `T001`, composto pela letra `T` seguida de três dígitos numéricos.
 
 Exemplo:
 
-```text
-EAP.md
-
-MINI PROJETO
-
-ETAPA 01 - ESTRUTURA INICIAL
-    T001 - Configurar projeto
-    T002 - Criar estrutura de diretórios
-
-ETAPA 02 - INTEGRAÇÃO OLLAMA
-    T003 - Estabelecer conexão
-    T004 - Consultar modelos disponíveis
-
-ETAPA 03 - PERSISTÊNCIA
-    T005 - Configurar SQLite
-    T006 - Armazenar conversas
+```markdown
+| ID | Tarefa | Resultado esperado |
+|---|---|---|
+| T001 | Inicializar projeto Node.js | Projeto configurado |
+| T002 | Criar estrutura de diretórios | Diretórios criados |
 ```
 
-Cada tarefa deverá possuir um documento individual.
+Cada tarefa deverá pertencer a uma etapa identificada anteriormente no documento.
+
+### Regras para os identificadores
+
+Os identificadores de etapas e tarefas deverão ser únicos e permanentes dentro do projeto.
+
+Um identificador existente não poderá ser alterado ou reutilizado, mesmo que a etapa ou tarefa correspondente seja removida ou substituída.
+
+A inclusão de novas etapas ou tarefas deverá utilizar novos identificadores, respeitando a sequência numérica disponível.
+
+A ordem das etapas no documento determinará sua posição na EAP. A ordem das linhas da tabela determinará a sequência das tarefas dentro de cada etapa.
+
+### Documentos individuais das tarefas
+
+Cada tarefa deverá possuir um documento individual no diretório `tasks/`, utilizando seu identificador como nome do arquivo.
 
 Exemplo:
 
@@ -441,33 +465,73 @@ tasks/
     T001.md
     T002.md
     T003.md
-    T004.md
 ```
 
-## 7.1. Separação entre planejamento e execução
+Esses documentos conterão o detalhamento necessário para executar e validar cada tarefa.
 
-O EAP.md será a referência da estrutura do planejamento.
+## 7.2. Exemplo de referência
+
+Exemplo simplificado de estrutura válida para um arquivo `EAP.md`:
+
+```markdown
+# MINI PROJETO
+
+## P01 — Estrutura inicial
+
+**Objetivo:** Preparar a estrutura básica do projeto.
+
+| ID | Tarefa | Resultado esperado |
+|---|---|---|
+| T001 | Inicializar projeto Node.js | Projeto configurado |
+| T002 | Criar estrutura de diretórios | Diretórios criados |
+
+## P02 — Integração com Ollama
+
+**Objetivo:** Estabelecer a comunicação com os modelos locais.
+
+| ID | Tarefa | Resultado esperado |
+|---|---|---|
+| T003 | Estabelecer conexão | Conexão confirmada |
+| T004 | Consultar modelos disponíveis | Modelos identificados |
+
+## P03 — Persistência
+
+**Objetivo:** Implementar o armazenamento de dados.
+
+| ID | Tarefa | Resultado esperado |
+|---|---|---|
+| T005 | Configurar SQLite | Banco de dados inicializado |
+| T006 | Armazenar conversas | Mensagens persistidas |
+```
+
+O documento poderá conter informações complementares, como objetivos, critérios, observações e descrições das etapas. Essas informações não deverão interferir na identificação das etapas e tarefas.
+
+A aplicação deverá reconhecer as etapas pelos títulos padronizados e as tarefas pelas linhas das tabelas que utilizam o formato definido nesta seção.
+
+## 7.3. Separação entre planejamento e execução
+
+O arquivo `EAP.md` será a referência da estrutura do planejamento.
 
 O SQLite será a referência do estado de execução.
 
-A aplicação não deverá modificar automaticamente a estrutura do EAP.md.
+A aplicação não deverá modificar automaticamente a estrutura do `EAP.md`.
 
-A atualização do plano será realizada por meio de uma operação de sincronização.
+A atualização do planejamento será realizada por meio de uma operação de sincronização.
 
-Tarefas identificadas por códigos já existentes deverão preservar seus estados registrados no banco.
+Durante a sincronização:
 
-Novas tarefas serão cadastradas como pendentes.
+- Tarefas identificadas por códigos já existentes deverão preservar seus estados registrados no banco.
+- Novas tarefas serão cadastradas como pendentes.
+- Alterações estruturais não deverão provocar a exclusão automática do histórico de tarefas anteriores.
 
-Alterações estruturais não deverão provocar a exclusão automática do histórico de tarefas anteriores.
+### Estados das tarefas
 
-## 7.2. Estados das tarefas
+Os estados possíveis serão:
 
-Os estados serão:
-
-- pending;
-- in_progress;
-- completed;
-- blocked.
+- `pending`;
+- `in_progress`;
+- `completed`;
+- `blocked`.
 
 A aplicação permitirá atualizar esses estados.
 
@@ -475,15 +539,11 @@ Uma tarefa somente será considerada concluída após a validação e confirmaç
 
 Como o MVP não executará comandos de teste automaticamente, a validação poderá envolver testes realizados externamente.
 
-## 7.3. Cálculo do progresso
+### Cálculo do progresso
 
 O percentual de conclusão será calculado pela relação:
 
-```text
-Tarefas concluídas
------------------- × 100
-Total de tarefas
-```
+**Tarefas concluídas / Total de tarefas × 100**
 
 Inicialmente, todas as tarefas terão o mesmo peso.
 
