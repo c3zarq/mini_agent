@@ -262,9 +262,161 @@ function readFile(projectRoot, requestedPath) {
     }
 }
 
+// Criar um arquivo dentro do projeto autorizado
+function createFile(projectRoot, requestedPath, content) {
+    if (
+        typeof requestedPath !== 'string' ||
+        !requestedPath.trim() ||
+        path.isAbsolute(requestedPath) ||
+        path.win32.isAbsolute(requestedPath) ||
+        typeof content !== 'string'
+    ) {
+        return {
+            success: false,
+            message: 'Caminho ou conteúdo inválido para criação do arquivo.'
+        };
+    }
+
+    // Validar o diretório pai
+    const parentPath = path.dirname(requestedPath);
+    const parentValidation = validatePath(projectRoot, parentPath);
+
+    if (!parentValidation.success) {
+        return parentValidation;
+    }
+
+    try {
+        if (!fs.statSync(parentValidation.path).isDirectory()) {
+            return {
+                success: false,
+                message: 'O diretório de destino não é válido.'
+            };
+        }
+
+        const destination = path.join(
+            parentValidation.path,
+            path.basename(requestedPath)
+        );
+
+        // Criar exclusivamente se o destino não existir
+        const descriptor = fs.openSync(destination, 'wx');
+
+        try {
+            fs.writeFileSync(descriptor, content, 'utf8');
+        } finally {
+            fs.closeSync(descriptor);
+        }
+
+        return {
+            success: true,
+            path: destination,
+            message: 'Arquivo criado com sucesso.'
+        };
+
+    } catch (error) {
+        return {
+            success: false,
+            message: `Erro ao criar arquivo: ${error.message}`
+        };
+    }
+}
+
+// Gravar alterações em um arquivo existente do projeto autorizado
+function writeFile(projectRoot, requestedPath, content, expectedContent) {
+    if (
+        typeof requestedPath !== 'string' ||
+        !requestedPath.trim() ||
+        path.isAbsolute(requestedPath) ||
+        path.win32.isAbsolute(requestedPath)
+    ) {
+        return {
+            success: false,
+            message: 'O caminho deve ser relativo ao projeto.'
+        };
+    }
+    if (
+        typeof content !== 'string' ||
+        typeof expectedContent !== 'string'
+    ) {
+        return {
+            success: false,
+            message: 'Conteúdo inválido para gravação.'
+        };
+    }
+
+    // Validar o caminho solicitado
+    const validation = validatePath(projectRoot, requestedPath);
+
+    if (!validation.success) {
+        return validation;
+    }
+
+    let descriptor;
+
+    try {
+        // Abrir o arquivo existente para leitura e escrita
+        descriptor = fs.openSync(validation.path, 'r+');
+
+        // Confirmar que o destino é um arquivo regular
+        if (!fs.fstatSync(descriptor).isFile()) {
+            return {
+                success: false,
+                message: 'O destino não corresponde a um arquivo regular.'
+            };
+        }
+
+        // Conferir se o conteúdo continua igual ao esperado
+        const currentContent = fs.readFileSync(
+            descriptor,
+            'utf8'
+        );
+
+        if (currentContent !== expectedContent) {
+            return {
+                success: false,
+                message: 'O arquivo foi modificado desde a validação da proposta.'
+            };
+        }
+
+        // Substituir o conteúdo do arquivo
+        fs.ftruncateSync(descriptor, 0);
+
+        fs.writeSync(
+            descriptor,
+            content,
+            0,
+            'utf8'
+        );
+
+        fs.ftruncateSync(
+            descriptor,
+            Buffer.byteLength(content, 'utf8')
+        );
+
+        return {
+            success: true,
+            path: validation.path,
+            message: 'Arquivo atualizado com sucesso.'
+        };
+
+    } catch (error) {
+        return {
+            success: false,
+            message: `Erro ao gravar arquivo: ${error.message}`
+        };
+
+    } finally {
+        if (descriptor !== undefined) {
+            fs.closeSync(descriptor);
+        }
+    }
+}
+
 module.exports = {
     validatePath,
     listFiles,
     searchFiles,
-    readFile
+    readFile,
+    createFile,
+    writeFile
 };

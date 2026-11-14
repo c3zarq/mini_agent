@@ -1,5 +1,7 @@
 'use strict';
 
+const path = require('node:path');
+
 const { validateResponse } = require('./protocol');
 
 // Operações reconhecidas e suas respectivas classificações
@@ -10,6 +12,66 @@ const OPERATIONS = {
     create_file: 'approval_required',
     replace_text: 'approval_required'
 };
+
+// Validar os argumentos específicos de criação de arquivo
+function validateCreateFileArguments(args) {
+    if (
+        typeof args.path !== 'string' ||
+        !args.path.trim() ||
+        path.isAbsolute(args.path) ||
+        path.win32.isAbsolute(args.path)
+    ) {
+        return {
+            success: false,
+            message: 'O caminho do arquivo deve ser um caminho relativo não vazio.'
+        };
+    } if (typeof args.content !== 'string') {
+        return {
+            success: false,
+            message: 'O conteúdo do arquivo deve ser um texto.'
+        };
+    }
+
+    return {
+        success: true
+    };
+}
+
+// Validar os argumentos específicos de substituição de texto
+function validateReplaceTextArguments(args) {
+    if (
+        typeof args.path !== 'string' ||
+        !args.path.trim() ||
+        path.isAbsolute(args.path) ||
+        path.win32.isAbsolute(args.path)
+    ) {
+        return {
+            success: false,
+            message: 'O caminho do arquivo deve ser um caminho relativo não vazio.'
+        };
+    }
+
+    if (
+        typeof args.old_text !== 'string' ||
+        !args.old_text.trim()
+    ) {
+        return {
+            success: false,
+            message: 'O trecho original deve ser um texto não vazio.'
+        };
+    }
+
+    if (typeof args.new_text !== 'string') {
+        return {
+            success: false,
+            message: 'O novo trecho deve ser um texto.'
+        };
+    }
+
+    return {
+        success: true
+    };
+}
 
 // Interpretar e classificar uma resposta do modelo
 function interpretOperation(response) {
@@ -63,6 +125,26 @@ function interpretOperation(response) {
             success: false,
             message: 'A operação automática não deve ser apresentada como proposta.'
         };
+    }
+
+    // Validar argumentos específicos de criação de arquivo
+    if (response.name === 'create_file') {
+        const argumentsValidation = validateCreateFileArguments(
+            response.arguments
+        );
+
+        if (!argumentsValidation.success) {
+            return argumentsValidation;
+        }
+    }
+    if (response.name === 'replace_text') {
+        const argumentsValidation = validateReplaceTextArguments(
+            response.arguments
+        );
+
+        if (!argumentsValidation.success) {
+            return argumentsValidation;
+        }
     }
 
     // Retornar operação interpretada, sem executá-la

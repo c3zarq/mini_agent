@@ -392,6 +392,11 @@ test('Deve retornar proposta sem executar a operação', async () => {
     assert.equal(result.success, true);
     assert.equal(result.type, 'proposal');
     assert.deepEqual(result.response, proposal);
+    assert.equal(result.proposal.name, 'create_file');
+    assert.equal(result.proposal.arguments.path, 'src/example.js');
+    assert.equal(result.proposal.arguments.content, 'console.log("teste");');
+    assert.equal(result.proposal.message, 'Posso criar este arquivo?');
+    assert.equal(result.proposal.classification, 'approval_required');
     assert.equal(toolExecuted, false);
 
     assert.deepEqual(
@@ -931,4 +936,64 @@ test('Deve tratar exceção durante a persistência da mensagem', async () => {
     assert.equal(result.stage, 'persistence');
     assert.match(result.message, /Banco de dados indisponível/);
     assert.equal(chatCalls, 0);
+});
+
+test('Deve retornar proposta de edição sem executar a operação', async () => {
+    let toolExecuted = false;
+    const savedMessages = [];
+
+    const proposal = {
+        type: 'proposal',
+        name: 'replace_text',
+        arguments: {
+            path: 'src/server.js',
+            old_text: 'const port = 3000;',
+            new_text: 'const port = 4000;'
+        },
+        message: 'Alterar a porta do servidor.'
+    };
+
+    const runAgent = createAgent({
+        buildContext: () => mockContext(),
+
+        getSession: () => ({
+            success: true,
+            session: { project_id: 1 }
+        }),
+
+        saveMessage: (sessionId, role, content) => {
+            savedMessages.push({ role, content });
+            return { success: true };
+        },
+
+        executeTool: () => {
+            toolExecuted = true;
+            return { success: true };
+        },
+
+        chat: async () => mockOllama(proposal)
+    });
+    const result = await runAgent({
+        model: 'qwen3:4b',
+        sessionId: 1,
+        userMessage: 'Altere a porta do servidor.'
+    });
+
+    assert.equal(result.success, true);
+    assert.equal(result.type, 'proposal');
+    assert.deepEqual(result.response, proposal);
+
+    assert.equal(result.proposal.name, 'replace_text');
+    assert.equal(result.proposal.classification, 'approval_required');
+    assert.equal(result.proposal.arguments.path, 'src/server.js');
+    assert.equal(result.proposal.arguments.old_text, 'const port = 3000;');
+    assert.equal(result.proposal.arguments.new_text, 'const port = 4000;');
+    assert.equal(result.proposal.message, 'Alterar a porta do servidor.');
+
+    assert.equal(toolExecuted, false);
+
+    assert.deepEqual(
+        savedMessages.map(message => message.role),
+        ['user', 'assistant']
+    );
 });

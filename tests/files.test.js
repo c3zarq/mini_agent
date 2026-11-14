@@ -6,7 +6,14 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 
-const { validatePath, listFiles, searchFiles, readFile } = require('../src/files');
+const {
+    validatePath,
+    listFiles,
+    searchFiles,
+    readFile,
+    createFile,
+    writeFile
+} = require('../src/files');
 
 // Preparar diretórios temporários para os testes
 const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'mini-agent-'));
@@ -320,4 +327,156 @@ test('Deve rejeitar parâmetros inválidos na leitura', () => {
     assert.equal(readFile(projectRoot, '').success, false);
     assert.equal(readFile(projectRoot, null).success, false);
     assert.equal(readFile(null, 'arquivo.txt').success, false);
+});
+
+// Criação de arquivo
+test('Deve criar um arquivo dentro do projeto', () => {
+    const result = createFile(
+        projectRoot,
+        'novo-arquivo.txt',
+        'Novo conteúdo'
+    );
+
+    assert.equal(result.success, true);
+    assert.equal(result.message, 'Arquivo criado com sucesso.');
+    assert.equal(
+        fs.readFileSync(
+            path.join(projectRoot, 'novo-arquivo.txt'),
+            'utf8'
+        ),
+        'Novo conteúdo'
+    );
+});
+
+// Impedir sobrescrita
+test('Deve impedir a sobrescrita de arquivos existentes', () => {
+    const result = createFile(
+        projectRoot,
+        'arquivo.txt',
+        'Conteúdo modificado'
+    );
+
+    assert.equal(result.success, false);
+    assert.equal(
+        fs.readFileSync(path.join(projectRoot, 'arquivo.txt'), 'utf8'),
+        'Conteúdo interno'
+    );
+});
+
+// Caminho absoluto
+test('Deve rejeitar caminhos absolutos na criação', () => {
+    const result = createFile(
+        projectRoot,
+        path.join(projectRoot, 'absoluto.txt'),
+        'Conteúdo'
+    );
+
+    assert.equal(result.success, false);
+});
+
+// Diretório pai inexistente
+test('Deve rejeitar criação em diretório inexistente', () => {
+    const result = createFile(
+        projectRoot,
+        'nao-existe/novo.txt',
+        'Conteúdo'
+    );
+
+    assert.equal(result.success, false);
+});
+
+// Link simbólico externo
+test('Deve rejeitar criação por link simbólico externo', () => {
+    const result = createFile(
+        projectRoot,
+        'link-externo.txt/novo.txt',
+        'Conteúdo'
+    );
+
+    assert.equal(result.success, false);
+});
+
+// Conteúdo inválido
+test('Deve rejeitar conteúdo que não seja texto', () => {
+    const result = createFile(
+        projectRoot,
+        'invalido.txt',
+        null
+    );
+
+    assert.equal(result.success, false);
+});
+
+// Gravação de arquivo existente
+test('Deve atualizar o conteúdo de um arquivo existente', () => {
+    const result = writeFile(
+        projectRoot,
+        'arquivo.txt',
+        'Conteúdo atualizado',
+        'Conteúdo interno'
+    );
+
+    assert.equal(result.success, true);
+    assert.equal(
+        fs.readFileSync(path.join(projectRoot, 'arquivo.txt'), 'utf8'),
+        'Conteúdo atualizado'
+    );
+});
+
+// Conteúdo desatualizado
+test('Deve impedir gravação quando o arquivo foi modificado', () => {
+    const filePath = path.join(projectRoot, 'arquivo.txt');
+
+    fs.writeFileSync(filePath, 'Conteúdo alterado externamente');
+
+    const result = writeFile(
+        projectRoot,
+        'arquivo.txt',
+        'Nova versão',
+        'Conteúdo atualizado'
+    );
+
+    assert.equal(result.success, false);
+    assert.match(result.message, /modificado desde a validação/i);
+    assert.equal(
+        fs.readFileSync(filePath, 'utf8'),
+        'Conteúdo alterado externamente'
+    );
+});
+
+// Arquivo inexistente
+test('Deve rejeitar gravação em arquivo inexistente', () => {
+    const result = writeFile(
+        projectRoot,
+        'inexistente.txt',
+        'Novo conteúdo',
+        ''
+    );
+
+    assert.equal(result.success, false);
+});
+
+// Caminho externo
+test('Deve rejeitar gravação fora do projeto', () => {
+    const result = writeFile(
+        projectRoot,
+        path.join(externalRoot, 'arquivo.txt'),
+        'Conteúdo alterado',
+        'Conteúdo externo'
+    );
+
+    assert.equal(result.success, false);
+});
+
+// Conteúdo inválido
+test('Deve rejeitar parâmetros de conteúdo inválidos na gravação', () => {
+    assert.equal(
+        writeFile(projectRoot, 'arquivo.txt', null, 'Conteúdo').success,
+        false
+    );
+
+    assert.equal(
+        writeFile(projectRoot, 'arquivo.txt', 'Novo conteúdo', null).success,
+        false
+    );
 });

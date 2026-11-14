@@ -70,6 +70,79 @@ test('Deve interpretar proposta de criação de arquivo', () => {
     assert.equal(result.message, response.message);
 });
 
+test('Deve rejeitar proposta de criação sem caminho', () => {
+    const result = interpretOperation({
+        type: 'proposal',
+        name: 'create_file',
+        arguments: {
+            content: 'Conteúdo do arquivo.'
+        },
+        message: 'Criar arquivo.'
+    });
+
+    assert.equal(result.success, false);
+    assert.match(result.message, /caminho do arquivo/i);
+});
+
+test('Deve rejeitar proposta de criação com caminho vazio', () => {
+    const result = interpretOperation({
+        type: 'proposal',
+        name: 'create_file',
+        arguments: {
+            path: '   ',
+            content: 'Conteúdo do arquivo.'
+        },
+        message: 'Criar arquivo.'
+    });
+
+    assert.equal(result.success, false);
+    assert.match(result.message, /caminho do arquivo/i);
+});
+
+test('Deve rejeitar proposta de criação sem conteúdo', () => {
+    const result = interpretOperation({
+        type: 'proposal',
+        name: 'create_file',
+        arguments: {
+            path: 'src/example.js'
+        },
+        message: 'Criar arquivo.'
+    });
+
+    assert.equal(result.success, false);
+    assert.match(result.message, /conteúdo do arquivo/i);
+});
+
+test('Deve rejeitar proposta de criação com conteúdo que não seja texto', () => {
+    const result = interpretOperation({
+        type: 'proposal',
+        name: 'create_file',
+        arguments: {
+            path: 'src/example.js',
+            content: 123
+        },
+        message: 'Criar arquivo.'
+    });
+
+    assert.equal(result.success, false);
+    assert.match(result.message, /conteúdo do arquivo/i);
+});
+
+test('Deve aceitar proposta de criação de arquivo vazio', () => {
+    const result = interpretOperation({
+        type: 'proposal',
+        name: 'create_file',
+        arguments: {
+            path: 'src/empty.js',
+            content: ''
+        },
+        message: 'Criar arquivo vazio.'
+    });
+
+    assert.equal(result.success, true);
+    assert.equal(result.arguments.content, '');
+});
+
 test('Deve interpretar proposta de substituição de texto', () => {
     const result = interpretOperation({
         type: 'proposal',
@@ -147,4 +220,162 @@ test('Deve rejeitar resposta estruturalmente inválida', () => {
 
     assert.equal(result.success, false);
     assert.ok(result.errors.length > 0);
+});
+
+test('Deve rejeitar proposta de criação com caminho absoluto', () => {
+    const result = interpretOperation({
+        type: 'proposal',
+        name: 'create_file',
+        arguments: {
+            path: '/tmp/example.js',
+            content: 'console.log("teste");'
+        },
+        message: 'Criar arquivo.'
+    });
+
+    assert.equal(result.success, false);
+    assert.match(result.message, /caminho relativo/i);
+});
+
+// Validação estrutural de propostas de edição
+
+test('Deve rejeitar proposta de edição sem caminho', () => {
+    const result = interpretOperation({
+        type: 'proposal',
+        name: 'replace_text',
+        arguments: {
+            old_text: 'texto antigo',
+            new_text: 'texto novo'
+        },
+        message: 'Editar arquivo.'
+    });
+
+    assert.equal(result.success, false);
+    assert.match(result.message, /caminho/i);
+});
+
+test('Deve rejeitar proposta de edição com caminho vazio', () => {
+    const result = interpretOperation({
+        type: 'proposal',
+        name: 'replace_text',
+        arguments: {
+            path: '   ',
+            old_text: 'texto antigo',
+            new_text: 'texto novo'
+        },
+        message: 'Editar arquivo.'
+    });
+
+    assert.equal(result.success, false);
+    assert.match(result.message, /caminho/i);
+});
+
+test('Deve rejeitar proposta de edição com caminho absoluto', () => {
+    const result = interpretOperation({
+        type: 'proposal',
+        name: 'replace_text',
+        arguments: {
+            path: '/tmp/server.js',
+            old_text: 'texto antigo',
+            new_text: 'texto novo'
+        },
+        message: 'Editar arquivo.'
+    });
+
+    assert.equal(result.success, false);
+    assert.match(result.message, /caminho relativo/i);
+});
+
+test('Deve rejeitar proposta de edição sem trecho original', () => {
+    const result = interpretOperation({
+        type: 'proposal',
+        name: 'replace_text',
+        arguments: {
+            path: 'src/server.js',
+            new_text: 'texto novo'
+        },
+        message: 'Editar arquivo.'
+    });
+
+    assert.equal(result.success, false);
+    assert.match(result.message, /trecho original/i);
+});
+
+test('Deve rejeitar proposta de edição com trecho original vazio', () => {
+    const result = interpretOperation({
+        type: 'proposal',
+        name: 'replace_text',
+        arguments: {
+            path: 'src/server.js',
+            old_text: '',
+            new_text: 'texto novo'
+        },
+        message: 'Editar arquivo.'
+    });
+
+    assert.equal(result.success, false);
+    assert.match(result.message, /trecho original/i);
+});
+
+test('Deve rejeitar proposta de edição com trecho original que não seja texto', () => {
+    const result = interpretOperation({
+        type: 'proposal',
+        name: 'replace_text',
+        arguments: {
+            path: 'src/server.js',
+            old_text: 123,
+            new_text: 'texto novo'
+        },
+        message: 'Editar arquivo.'
+    });
+
+    assert.equal(result.success, false);
+    assert.match(result.message, /trecho original/i);
+});
+
+test('Deve rejeitar proposta de edição sem novo trecho', () => {
+    const result = interpretOperation({
+        type: 'proposal',
+        name: 'replace_text',
+        arguments: {
+            path: 'src/server.js',
+            old_text: 'texto antigo'
+        },
+        message: 'Editar arquivo.'
+    });
+
+    assert.equal(result.success, false);
+    assert.match(result.message, /novo trecho/i);
+});
+
+test('Deve rejeitar proposta de edição com novo trecho que não seja texto', () => {
+    const result = interpretOperation({
+        type: 'proposal',
+        name: 'replace_text',
+        arguments: {
+            path: 'src/server.js',
+            old_text: 'texto antigo',
+            new_text: 123
+        },
+        message: 'Editar arquivo.'
+    });
+
+    assert.equal(result.success, false);
+    assert.match(result.message, /novo trecho/i);
+});
+
+test('Deve aceitar novo trecho vazio para permitir a exclusão de texto', () => {
+    const result = interpretOperation({
+        type: 'proposal',
+        name: 'replace_text',
+        arguments: {
+            path: 'src/server.js',
+            old_text: 'texto que será removido',
+            new_text: ''
+        },
+        message: 'Remover trecho.'
+    });
+
+    assert.equal(result.success, true);
+    assert.equal(result.arguments.new_text, '');
 });
