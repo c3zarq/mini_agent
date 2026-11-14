@@ -278,7 +278,7 @@ function buildContext({
 
 	for (const message of recentMessages) {
             messages.push({
-                role: message.role === 'tool' ? 'assistant' : message.role,
+                role: message.role,
                 content: message.content
             });
         }
