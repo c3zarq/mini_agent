@@ -183,6 +183,46 @@ function getProject(id) {
     }
 }
 
+// Listar tarefas ativas de um projeto
+function listTasks(projectId) {
+    if (!Number.isInteger(projectId) || projectId <= 0) {
+        return {
+            success: false,
+            message: 'Identificador de projeto inválido.'
+        };
+    }
+
+    try {
+        const projectResult = getProject(projectId);
+
+        if (!projectResult.success || !projectResult.project) {
+            return {
+                success: false,
+                message: 'Projeto não encontrado.'
+            };
+        }
+
+        const tasks = db.prepare(`
+            SELECT *
+            FROM tasks
+            WHERE project_id = ?
+            AND is_active = 1
+            ORDER BY phase_code, position, code
+        `).all(projectId);
+
+        return {
+            success: true,
+            tasks
+        };
+
+    } catch (error) {
+        return {
+            success: false,
+            message: `Erro ao listar tarefas: ${error.message}`
+        };
+    }
+}
+
 // Criar sessão
 function createSession(projectId, model) {
     if (
@@ -487,6 +527,7 @@ module.exports = {
     createProject,
     listProjects,
     getProject,
+    listTasks,
     createSession,
     getSession,
     listSessions,
