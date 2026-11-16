@@ -237,7 +237,7 @@ function createAgent({
                 const response = ollamaResult.message.content;
                 const validation = validateResponse(response);
 
-                if (!validation.success) {
+                if (!validation.success) {		    
                     return {
                         success: false,
                         stage,
@@ -271,9 +271,9 @@ function createAgent({
 		});
 
                 // Interpretar a resposta
-                stage = 'operations';
-
-                const operation = interpretOperation(response);
+                stage = 'operations';              
+                
+                const operation = interpretOperation(response);                                
 
                 if (!operation.success) {
                     return {
@@ -332,8 +332,8 @@ function createAgent({
                     }
 
                     iterations++;
-                }
-
+                }              
+                
                 // Converter o resultado em texto
                 const toolContent = serializeContent(toolResult);
 

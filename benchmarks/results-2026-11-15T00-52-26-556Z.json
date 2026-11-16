@@ -1,0 +1,171 @@
+{
+  "createdAt": "2026-11-15T00:52:26.556Z",
+  "ollamaUrl": "http://localhost:11434",
+  "configuration": {
+    "temperature": 0,
+    "seed": 42,
+    "num_ctx": 8192,
+    "num_predict": 900
+  },
+  "models": [
+    {
+      "model": "qwen3:1.7b",
+      "tests": [
+        {
+          "id": "T01",
+          "title": "Interpretação de requisitos",
+          "metrics": {
+            "wall_seconds": 77.14415109800001,
+            "total_seconds": 77.130750619,
+            "load_seconds": 17.545955158,
+            "prompt_seconds": 5.5884,
+            "generation_seconds": 53.986122,
+            "prompt_tokens": 255,
+            "output_tokens": 675,
+            "prompt_tokens_per_second": 45.6302340562594,
+            "generation_tokens_per_second": 12.503213325824737
+          },
+          "answer": "### a) Resumo do funcionamento esperado:  \nO agente permite cadastrar projetos com diretório raiz associado, armazena sessões de conversa com mensagens em SQLite, permite consulta de arquivos no diretório autorizado, sincroniza tarefas de EAP.md sem duplicação ou apagamento de estados existentes.  \n\n### b) Requisitos verificáveis:  \n1. O agente deve permitir a cadastrar projetos com um diretório raiz especificado.  \n2. Cada projeto deve ser associado a um diretório raiz único e persistente.  \n3. As sessões de conversa de um projeto devem ser armazenadas em um banco de dados SQLite, com registros separados por projeto.  \n4. O agente deve permitir a consulta de arquivos no diretório raiz autorizado, com verificação de permissões.  \n5. As tarefas da EAP.md devem ser carregadas automaticamente pelo agente, em formato de documento texto.  \n6. A sincronização da EAP.md deve evitar duplicação de tarefas e preservar estados já registrados.  \n7. O agente deve garantir que a atualização da EAP.md não apague ou altere estados de projetos já registrados.  \n\n### c) Riscos ou ambiguidades:  \n1. **Duplicação de tarefas**: A sincronização pode gerar conflitos se tarefas forem atualizadas em múltiplas fontes.  \n2. **Acesso não autorizado**: O agente deve garantir que apenas os arquivos no diretório autorizado sejam consultados, evitando vazamento de dados.  \n3. **Estado de projetos perdido**: A exclusão de estados durante a sincronização pode resultar em perda de informações críticas de projetos já registrados."
+        },
+        {
+          "id": "T02",
+          "title": "Raciocínio e segurança",
+          "metrics": {
+            "wall_seconds": 90.457105883,
+            "total_seconds": 90.446201772,
+            "load_seconds": 0.001316238,
+            "prompt_seconds": 7.638041,
+            "generation_seconds": 82.708184,
+            "prompt_tokens": 295,
+            "output_tokens": 900,
+            "prompt_tokens_per_second": 38.622468771770144,
+            "generation_tokens_per_second": 10.881631737918463
+          },
+          "answer": "**Análise dos caminhos:**  \nA) **Rejeitado** – O caminho `docs/README.md` está fora do diretório autorizado (`/home/cezar/data/projeto`), pois o diretório `docs` não existe no raiz.  \nB) **Rejeitado** – O `../segredo.txt` aponta para o diretório pai do raiz, que não é autorizado.  \nC) **Rejeitado** – O caminho absoluto `/etc/passwd` está fora do diretório autorizado.  \nD) **Autorizado** – O `../projeto-backup` está dentro do diretório autorizado, e o arquivo `arquivo.txt` é válido.  \nE) **Rejeitado** – O link `docs/atalho` aponta para `/home/cezar/private`, que não é autorizado.  \n\n**Algoritmo seguro de validação de caminhos em Node.js:**  \n1. **Normalização**: Converta caminhos absolutos em relativos em relação ao diretório autorizado, e relativos em formato normalizado.  \n2. **Validação de diretorios**:  \n   - **Diretório com nome exato do autorizado**: Permitido (ex:"
+        },
+        {
+          "id": "T03",
+          "title": "Programação JavaScript",
+          "metrics": {
+            "wall_seconds": 179.624980101,
+            "total_seconds": 179.612106162,
+            "load_seconds": 0.00109485,
+            "prompt_seconds": 20.4223,
+            "generation_seconds": 159.068782,
+            "prompt_tokens": 388,
+            "output_tokens": 900,
+            "prompt_tokens_per_second": 18.998839503875665,
+            "generation_tokens_per_second": 5.657929787882578
+          },
+          "answer": ""
+        }
+      ]
+    },
+    {
+      "model": "phi4-mini:latest",
+      "tests": [
+        {
+          "id": "T01",
+          "title": "Interpretação de requisitos",
+          "metrics": {
+            "wall_seconds": 121.41730450799997,
+            "total_seconds": 121.410676991,
+            "load_seconds": 35.576374939,
+            "prompt_seconds": 18.590163,
+            "generation_seconds": 67.218130999,
+            "prompt_tokens": 191,
+            "output_tokens": 319,
+            "prompt_tokens_per_second": 10.27425095734771,
+            "generation_tokens_per_second": 4.745743376958008
+          },
+          "answer": "a) Um resumo do funcionamento esperado:\nO sistema permite aos agentes locais registrar diferentes projetos, cada um com seu próprio diretório raiz. Esses projetos podem ter várias sessões de conversa, onde as mensagens são armazenadas de forma persistente em um banco de dados SQLite. Os agentes têm acesso restrito para consultar arquivos, apenas dentro do diretório raiz autorizado. As tarefas são gerenciadas a partir de um documento EAP.md, garantindo que a sincronização com o EAP não repita tarefas ou elimine estados existentes.\n\nb) Requisitos verificáveis:\n1. O sistema permite o cadastro de novos projetos pelos agentes locais.\n2. Cada projeto é associado a um único diretório raiz.\n3. Um projeto pode conter múltiplas sessões de conversa.\n4. As mensagens das sessões de conversa são armazenadas de forma persistente em SQLite.\n5. Os agentes têm acesso restrito para consultar arquivos, limitado ao diretório raiz autorizado.\n6. As tarefas são carregadas a partir de um documento EAP.md.\n7. A sincronização com o EAP.md não repete tarefas nem remove estados já registrados.\n\nc) Riscos ou ambiguidades:\n1. Não está claro como os direitos de acesso aos diretórios raiz são gerenciados, o que pode levar a problemas de segurança.\n2. Não são especificados os mecanismos de controle de versão para as sessões de conversa, o que pode causar conflitos ou perda de dados.\n3. A semelhança entre o documento EAP.md e outros arquivos pode levar a confusão ou erros de carregamento de tarefas."
+        },
+        {
+          "id": "T02",
+          "title": "Raciocínio e segurança",
+          "metrics": {
+            "wall_seconds": 72.96726872500003,
+            "total_seconds": 72.958852233,
+            "load_seconds": 0.000871521,
+            "prompt_seconds": 12.385779,
+            "generation_seconds": 60.519299,
+            "prompt_tokens": 236,
+            "output_tokens": 284,
+            "prompt_tokens_per_second": 19.054110363183455,
+            "generation_tokens_per_second": 4.692717937793695
+          },
+          "answer": "A) docs/README.md - Rejeitado. O caminho não está dentro do diretório raiz autorizado.\n\nB) ../segredo.txt - Rejeitado. O caminho está fora do diretório raiz autorizado.\n\nC) /etc/passwd - Rejeitado. O caminho está fora do diretório raiz autorizado.\n\nD) ../projeto-backup/arquivo.txt - Rejeitado. O caminho está fora do diretório raiz autorizado.\n\nE) docs/atalho/segredo.txt - Rejeitado. O caminho não está dentro do diretório raiz autorizado.\n\nF) docs/../tasks/T014.md - Rejeitado. O caminho está fora do diretório raiz autorizado.\n\nAlgoritmo seguro de validação de caminhos em Node.js:\n\n1. Receba o caminho solicitado como entrada.\n2. Converta o caminho em um objeto `path` usando `path.resolve()`.\n3. Normalize o caminho usando `path.normalize()`.\n4. Verifique se o caminho normalizado começa com o diretório raiz autorizado, usando `startsWith()`.\n5. Se o caminho incluir links simbólicos, resolva-o usando `path.resolve()`.\n6. Tentativa de escapar do diretório autorizado, removendo o diretório raiz autorizado do caminho.\n7. Compare o caminho escapado com o diretório raiz autorizado. Se corresponder, é seguro; se não, rejeite."
+        },
+        {
+          "id": "T03",
+          "title": "Programação JavaScript",
+          "metrics": {
+            "wall_seconds": 249.32281983599998,
+            "total_seconds": 249.309857622,
+            "load_seconds": 0.00228614,
+            "prompt_seconds": 23.59639,
+            "generation_seconds": 225.571577,
+            "prompt_tokens": 306,
+            "output_tokens": 900,
+            "prompt_tokens_per_second": 12.968085372381115,
+            "generation_tokens_per_second": 3.9898643790569412
+          },
+          "answer": "Aqui está uma implementação da função `isPathInside` em JavaScript usando módulos nativos do Node.js, conforme solicitado. Também incluí o arquivo de teste `isPathInside.test.js` com vários casos de teste.\n\nArquivo 1: `isPathInside.js`\n```javascript\nconst fs = require('fs');\nconst path = require('path');\n\nfunction isPathInside(projectRoot, requestedPath) {\n  // Verifique se os caminhos são válidos\n  if (!fs.existsSync(projectRoot) || (!requestedPath && requestedPath !== '') requestedPath = projectRoot, !fs.existsSync(requestedPath)) return false;\n\n  // Resolva links simbólicos\n  const resolvedPath = path.resolve(projectRoot, requestedPath);\n\n  // Verifique se o caminho é um diretório chamado 'project-backup' ou um subdiretório chamado 'project'\n  if (resolvedPath.includes('project-backup') || resolvedPath.includes('project')) return false;\n\n  // Verifique se o caminho está dentro do diretório raiz autorizado\n  const relativePath = path.relative(projectRoot, resolvedPath);\n  return relativePath && !relativePath.startsWith('../') && !relativePath.startsWith('./');\n}\n\nmodule.exports = isPathInside;\n```\n\nArquivo 2: `isPathInside.test.js`\n```javascript\nconst fs = require('fs');\nconst path = require('path');\nconst isPathInside = require('./isPathInside');\n\ndescribe('Teste da função isPathInside', () => {\n  beforeAll(() => {\n    // Crie um diretório de teste e um arquivo dentro dele\n    const projectRoot = path.join(__dirname, 'project-root');\n    const requestedPath = path.join(projectRoot, 'subdir', 'file.txt');\n\n    if (!fs.existsSync(projectRoot)) {\n      fs.mkdirSync(projectRoot);\n    }\n\n    fs.writeFileSync(requestedPath, '');\n  });\n\n  afterAll(() => {\n    // Limpe o diretório de teste\n    if (fs.existsSync(projectRoot)) {\n      fs.rmdirSync(projectRoot, { recursive: true });\n    }\n  });\n\n  it('deve reconhecer um caminho absoluto autorizado', () => {\n    const result = isPathInside(path.join(__dirname, 'project-root'), path.join(__dirname, 'project-root', 'subdir', 'file.txt'));\n    assert.strictEqual(result, true);\n  });\n\n  it('deve reconhecer um caminho relativo autorizado', () => {\n    const result = isPathInside(path.join(__dirname, 'project-root'), path.join('subdir', 'file.txt'));\n    assert.strictEqual(result, true);\n  });\n\n  it('não deve permitir acesso com ../', () => {\n    const result = isPathInside(path.join(__dirname, 'project-root'), path.join('..', 'file.txt'));\n    assert.strictEqual(result, false);\n  });\n\n  it('não deve confundir um diretório chamado 'project-backup' com um subdiretório chamado 'project', () => {\n    fs.mkdirSync(path.join(__dirname, 'project-root', 'project-backup'));\n    fs.mkdirSync(path.join(__dirname, 'project-root', 'project'));\n    const result = isPathInside(path.join(__dirname, 'project-root'), path.join('project-root', 'project-backup', 'file.txt'));\n    assert.strictEqual(result, false);\n  });\n\n  it('não deve permitir links simbólicos apontando para fora do diretório', () => {\n    const symbolicLinkPath = path.join(__dirname, 'link-to-file.txt');\n    fs.symlink(path.join(__dirname, 'file.txt'), symbolicLinkPath, { target: path.join(__dirname, 'link-to-file.txt') });\n    const result = isPathInside(path.join(__dirname, 'project-root'), symbolicLinkPath);\n    assert.strictEqual(result, false);\n  });\n\n  it('deve reconhecer o próprio diretório raiz', () => {\n    const result = isPathInside(path.join(__dirname, 'project-root'), path.join(__dirname, 'file.txt'));\n    assert.strictEqual(result, false);\n  });\n\n  it('deve rejeitar argumentos inválidos', () => {\n    const result = isPathInside(path.join(__dirname, 'project-root'), '');\n    assert.strictEqual(result, false);\n  });\n});\n```\n\nPara executar os testes, você precisará instalar o módulo Mocha,"
+        }
+      ]
+    },
+    {
+      "model": "qwen2.5-coder:0.5b",
+      "tests": [
+        {
+          "id": "T01",
+          "title": "Interpretação de requisitos",
+          "metrics": {
+            "wall_seconds": 25.831110486000078,
+            "total_seconds": 25.82038083,
+            "load_seconds": 7.203395194,
+            "prompt_seconds": 2.71104,
+            "generation_seconds": 15.896684,
+            "prompt_tokens": 253,
+            "output_tokens": 402,
+            "prompt_tokens_per_second": 93.32211992445703,
+            "generation_tokens_per_second": 25.288292828869213
+          },
+          "answer": "Aqui está um resumo do funcionamento esperado:\n\nO sistema deve permitir o cadastro de projetos, cada projeto associado a um diretório raiz, cada projeto possuir várias sessões de conversa, as mensagens das sessões são persistidas em SQLite, o agente pode consultar arquivos, mas somente dentro do diretório raiz autorizado, as tarefas são carregadas de um documento EAP.md e a sincronização da EAP não deve duplicar tarefas nem apagar estados já registrados.\n\n7 requisitos verificáveis:\n\n1. O sistema deve permitir o cadastro de projetos, cada projeto associado a um diretório raiz.\n2. Cada projeto está associado a um diretório raiz.\n3. Cada projeto pode possuir várias sessões de conversa.\n4. As mensagens das sessões são persistidas em SQLite.\n5. O agente pode consultar arquivos, mas somente dentro do diretório raiz autorizado.\n6. As tarefas são carregadas de um documento EAP.md.\n7. A sincronização da EAP não deve duplicar tarefas nem apagar estados já registrados.\n\n3 riscos ou ambiguidades que mereçam atenção:\n\n1. O sistema deve permitir o cadastro de projetos, cada projeto associado a um diretório raiz.\n2. Cada projeto está associado a um diretório raiz.\n3. Cada projeto pode possuir várias sessões de conversa.\n4. As mensagens das sessões são persistidas em SQLite.\n5. O agente pode consultar arquivos, mas somente dentro do diretório raiz autorizado.\n6. As tarefas são carregadas de um documento EAP.md.\n7. A sincronização da EAP não deve duplicar tarefas nem apagar estados já registrados."
+        },
+        {
+          "id": "T02",
+          "title": "Raciocínio e segurança",
+          "metrics": {
+            "wall_seconds": 44.75866466199991,
+            "total_seconds": 44.746187571,
+            "load_seconds": 0.002119451,
+            "prompt_seconds": 4.205486,
+            "generation_seconds": 40.515488,
+            "prompt_tokens": 293,
+            "output_tokens": 900,
+            "prompt_tokens_per_second": 69.67090129416673,
+            "generation_tokens_per_second": 22.21372725413057
+          },
+          "answer": "Para analisar os caminhos solicitados, vamos seguir as instruções do usuário:\n\nA) docs/README.md\n   - Autorizado: Sim\n   - Rejeitado: Não\n\nB) ../segredo.txt\n   - Autorizado: Sim\n   - Rejeitado: Não\n\nC) /etc/passwd\n   - Autorizado: Sim\n   - Rejeitado: Não\n\nD) ../projeto-backup/arquivo.txt\n   - Autorizado: Sim\n   - Rejeitado: Não\n\nE) docs/atalho/segredo.txt\n   - Autorizado: Sim\n   - Rejeitado: Não\n\nF) docs/../tasks/T014.md\n   - Autorizado: Sim\n   - Rejeitado: Não\n\nAlgoritmo seguro de validação de caminhos em Node.js:\n\n1. **Normalização dos caminhos**:\n   - Caminhos relativos e absolutos devem ser normalizados para garantir que o sistema de arquivos funcione corretamente.\n   - Caminhos simbólicos devem ser tratados como se fossem diretórios.\n\n2. **Tentativa de escapar do diretório autorizado**:\n   - Se um caminho começa com o nome do diretório autorizado, o sistema deve tentar escapar do diretório autorizado.\n   - Isso pode ser feito usando a função `path.resolve` ou `path.join`.\n\n3. **Diferença entre um diretório cujo nome começa com o nome do diretório autorizado e um verdadeiro subdiretório**:\n   - Se um diretório começa com o nome do diretório autorizado, o sistema deve tentar escapar do diretório autorizado.\n   - Isso pode ser feito usando a função `path.resolve` ou `path.join`.\n\n4. **Validação de caminhos**:\n   - Se um caminho não for válido, o sistema deve retornar um erro ou uma mensagem de erro.\n\n5. **Exemplo de uso**:\n   - Caminho: `/home/cezar/data/projeto`\n     - Normalizado: `/home/cezar/data/projeto`\n     - Escapado: `/home/cezar/data/projeto`\n     - Verdadeiro subdiretório: `/home/cezar/data/projeto-backup`\n     - Não autorizado: Não\n\n   - Caminho: `/home/cezar/private`\n     - Normalizado: `/home/cezar/private`\n     - Escapado: `/home/cezar/private`\n     - Verdadeiro subdiretório: `/home/cezar/private`\n     - Não autorizado: Não\n\n   - Caminho: `/home/cezar/tasks/T014.md`\n     - Normalizado: `/home/cezar/tasks/T014.md`\n     - Escapado: `/home/cezar/tasks/T014.md`\n     - Verdadeiro subdiretório: `/home/cezar/tasks/T014.md`\n     - Não autorizado: Não\n\n   - Caminho: `/home/cezar`\n     - Normalizado: `/home/cezar`\n     - Escapado: `/home/cezar`\n     - Verdadeiro subdiretório: `/home/cezar`\n     - Não autorizado: Não\n\n   - Caminho: `/home/cezar/data`\n     - Normalizado: `/home/cezar/data`\n     - Escapado: `/home/cezar/data`\n     - Verdadeiro subdiretório: `/home/cezar/data`\n     - Não autorizado: Não\n\n   - Caminho: `/home/cezar/data/projeto-backup`\n     - Normalizado: `/home/cezar/data/projeto-backup`\n     - Escapado: `/home/cezar/data/projeto-backup`\n     - Verdadeiro subdiretório: `/home/cezar/data/projeto-backup`\n     - Não autorizado: Não\n\n   - Caminho: `/home/cezar/data/projeto-backup/arquivo.txt`\n     - Normalizado: `/home/cezar/data/projeto-backup/arquivo.txt`\n     - Escapado: `/home"
+        },
+        {
+          "id": "T03",
+          "title": "Programação JavaScript",
+          "metrics": {
+            "wall_seconds": 45.10673609100003,
+            "total_seconds": 45.102707316,
+            "load_seconds": 0.001029792,
+            "prompt_seconds": 5.600564,
+            "generation_seconds": 39.485068,
+            "prompt_tokens": 386,
+            "output_tokens": 900,
+            "prompt_tokens_per_second": 68.9216300358321,
+            "generation_tokens_per_second": 22.793426618892997
+          },
+          "answer": "Para implementar a função `isPathInside`, vamos seguir as instruções fornecidas. Vamos criar dois arquivos: `isPathInside.js` e `isPathInside.test.js`.\n\n### Arquivo `isPathInside.js`\n\n```javascript\n// isPathInside.js\n\nfunction isPathInside(projectRoot, requestedPath) {\n    // Verifica se o requestedPath é um caminho absoluto ou relativo ao projectRoot\n    if (typeof requestedPath !== 'string' || !requestedPath.startsWith(projectRoot)) {\n        return false;\n    }\n\n    // Verifica se o requestedPath é um subdiretório do projectRoot\n    const [directory, relativePath] = requestedPath.split('/');\n    const projectDir = path.join(projectRoot, directory);\n\n    // Verifica se o requestedPath é um subdiretório do projectRoot\n    if (!path.existsSync(projectDir)) {\n        return false;\n    }\n\n    // Verifica se o requestedPath é um caminho absoluto ou relativo ao projectRoot\n    if (typeof relativePath !== 'string' || !relativePath.startsWith(projectRoot)) {\n        return false;\n    }\n\n    // Verifica se o requestedPath é um subdiretório do projectRoot\n    const [subdirectory, subrelativePath] = relativePath.split('/');\n    const subprojectDir = path.join(projectDir, subdirectory);\n\n    // Verifica se o requestedPath é um subdiretório do projectRoot\n    if (!path.existsSync(subprojectDir)) {\n        return false;\n    }\n\n    // Verifica se o requestedPath é um caminho absoluto ou relativo ao projectRoot\n    if (typeof subrelativePath !== 'string' || !subrelativePath.startsWith(projectRoot)) {\n        return false;\n    }\n\n    // Verifica se o requestedPath é um subdiretório do projectRoot\n    const [subsubdirectory, subsubrelativePath] = subrelativePath.split('/');\n    const subsubprojectDir = path.join(subprojectDir, subsubdirectory);\n\n    // Verifica se o requestedPath é um subdiretório do projectRoot\n    if (!path.existsSync(subsubprojectDir)) {\n        return false;\n    }\n\n    // Verifica se o requestedPath é um subdiretório do projectRoot\n    const [subsubsubdirectory, subsubsubrelativePath] = subsubrelativePath.split('/');\n    const subsubsubprojectDir = path.join(subsubsubprojectDir, subsubsubdirectory);\n\n    // Verifica se o requestedPath é um subdiretório do projectRoot\n    if (!path.existsSync(subsubsubprojectDir)) {\n        return false;\n    }\n\n    // Verifica se o requestedPath é um subdiretório do projectRoot\n    const [subsubsubsubdirectory, subsubsubsubrelativePath] = subsubsubrelativePath.split('/');\n    const subsubsubsubprojectDir = path.join(subsubsubsubprojectDir, subsubsubsubdirectory);\n\n    // Verifica se o requestedPath é um subdiretório do projectRoot\n    if (!path.existsSync(subsubsubsubprojectDir)) {\n        return false;\n    }\n\n    // Verifica se o requestedPath é um subdiretório do projectRoot\n    const [subsubsubsubsubdirectory, subsubsubsubrelativePath] = subsubsubsubrelativePath.split('/');\n    const subsubsubsubsubprojectDir = path.join(subsubsubsubsubprojectDir, subsubsubsubsubdirectory);\n\n    // Verifica se o requestedPath é um subdiretório do projectRoot\n    const [subsubsubsubsubdirectory, subsubsubsubrelativePath] = subsubsubsubsubrelativePath.split('/');\n    const subsubsubsubsubprojectDir = path.join(subsubsubsubsubprojectDir, subsubsubsubsubdirectory);\n\n    // Verifica se o requestedPath é um subdiretório do projectRoot\n    const [subsubsubsubsubdirectory, subsubsubsubrelativePath] = subsubsubsubsubrelativePath.split('/');\n    const subsubsubsubsubprojectDir = path.join(subsubsubsubsubprojectDir, subsubsubsubsubdirectory);\n\n    // Verifica se o requestedPath é um subdiretório do projectRoot\n    const [subsubsubsubsubdirectory, subsubsubsubrelativePath] = subsubsubsubsubrelativePath.split('/');\n"
+        }
+      ]
+    }
+  ]
+}

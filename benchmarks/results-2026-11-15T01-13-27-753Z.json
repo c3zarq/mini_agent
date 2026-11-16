@@ -1,0 +1,114 @@
+{
+  "createdAt": "2026-11-15T01:13:27.754Z",
+  "ollamaUrl": "http://localhost:11434",
+  "configuration": {
+    "temperature": 0,
+    "seed": 42,
+    "num_ctx": 8192,
+    "num_predict": 900
+  },
+  "models": [
+    {
+      "model": "qwen3:1.7b",
+      "tests": [
+        {
+          "id": "T01",
+          "title": "Interpretação de requisitos",
+          "metrics": {
+            "model_memory_estimate_mb": 2315.2499990463257,
+            "model_size_mb": 2315.2499990463257,
+            "vram_mb": 0,
+            "context_length": 8192,
+            "parameter_size": "2.0B",
+            "memory_measurement_error": null,
+            "wall_seconds": 61.017680094999996,
+            "total_seconds": 61.004978897,
+            "load_seconds": 5.157845186,
+            "prompt_seconds": 5.525473,
+            "generation_seconds": 50.316031,
+            "prompt_tokens": 255,
+            "output_tokens": 675,
+            "prompt_tokens_per_second": 46.14989522163985,
+            "generation_tokens_per_second": 13.415207570724327
+          },
+          "answer": "### a) Resumo do funcionamento esperado:  \nO agente permite cadastrar projetos com diretório raiz associado, armazena sessões de conversa com mensagens em SQLite, permite consulta de arquivos no diretório autorizado, sincroniza tarefas de EAP.md sem duplicação ou apagamento de estados existentes.  \n\n### b) Requisitos verificáveis:  \n1. O agente deve permitir a cadastrar projetos com um diretório raiz especificado.  \n2. Cada projeto deve ser associado a um diretório raiz único e persistente.  \n3. As sessões de conversa de um projeto devem ser armazenadas em um banco de dados SQLite, com registros separados por projeto.  \n4. O agente deve permitir a consulta de arquivos no diretório raiz autorizado, com verificação de permissões.  \n5. As tarefas da EAP.md devem ser carregadas automaticamente pelo agente, em formato de documento texto.  \n6. A sincronização da EAP.md deve evitar duplicação de tarefas e preservar estados já registrados.  \n7. O agente deve garantir que a atualização da EAP.md não apague ou altere estados de projetos já registrados.  \n\n### c) Riscos ou ambiguidades:  \n1. **Duplicação de tarefas**: A sincronização pode gerar conflitos se tarefas forem atualizadas em múltiplas fontes.  \n2. **Acesso não autorizado**: O agente deve garantir que apenas os arquivos no diretório autorizado sejam consultados, evitando vazamento de dados.  \n3. **Estado de projetos perdido**: A exclusão de estados durante a sincronização pode resultar em perda de informações críticas de projetos já registrados.",
+          "done_reason": "stop"
+        },
+        {
+          "id": "T02",
+          "title": "Raciocínio e segurança",
+          "metrics": {
+            "model_memory_estimate_mb": 2315.2499990463257,
+            "model_size_mb": 2315.2499990463257,
+            "vram_mb": 0,
+            "context_length": 8192,
+            "parameter_size": "2.0B",
+            "memory_measurement_error": null,
+            "wall_seconds": 78.08941078900001,
+            "total_seconds": 78.081731839,
+            "load_seconds": 0.001148043,
+            "prompt_seconds": 6.411131,
+            "generation_seconds": 71.582009,
+            "prompt_tokens": 295,
+            "output_tokens": 900,
+            "prompt_tokens_per_second": 46.01372207181541,
+            "generation_tokens_per_second": 12.572991629782283
+          },
+          "answer": "**Análise dos caminhos:**  \nA) **Rejeitado** – O caminho `docs/README.md` está fora do diretório autorizado (`/home/cezar/data/projeto`), pois o diretório `docs` não existe no raiz.  \nB) **Rejeitado** – O `../segredo.txt` aponta para o diretório pai do raiz, que não é autorizado.  \nC) **Rejeitado** – O caminho absoluto `/etc/passwd` está fora do diretório autorizado.  \nD) **Autorizado** – O `../projeto-backup` está dentro do diretório autorizado, e o arquivo `arquivo.txt` é válido.  \nE) **Rejeitado** – O link `docs/atalho` aponta para `/home/cezar/private`, que não é autorizado.  \n\n**Algoritmo seguro de validação de caminhos em Node.js:**  \n1. **Normalização**: Converta caminhos absolutos em relativos em relação ao diretório autorizado, e relativos em formato normalizado.  \n2. **Validação de diretorios**:  \n   - **Diretório com nome exato do autorizado**: Permitido (ex:",
+          "done_reason": "length"
+        },
+        {
+          "id": "T03",
+          "title": "Programação JavaScript",
+          "metrics": {
+            "model_memory_estimate_mb": 2315.2499990463257,
+            "model_size_mb": 2315.2499990463257,
+            "vram_mb": 0,
+            "context_length": 8192,
+            "parameter_size": "2.0B",
+            "memory_measurement_error": null,
+            "wall_seconds": 114.787102974,
+            "total_seconds": 114.778279451,
+            "load_seconds": 0.001252369,
+            "prompt_seconds": 9.404757,
+            "generation_seconds": 105.27598,
+            "prompt_tokens": 388,
+            "output_tokens": 900,
+            "prompt_tokens_per_second": 41.25571771817177,
+            "generation_tokens_per_second": 8.548958651346679
+          },
+          "answer": "",
+          "done_reason": "length"
+        }
+      ]
+    },
+    {
+      "model": "phi4-mini:latest",
+      "tests": [
+        {
+          "id": "T01",
+          "title": "Interpretação de requisitos",
+          "metrics": {
+            "model_memory_estimate_mb": 3565.3699989318848,
+            "model_size_mb": 3565.3699989318848,
+            "vram_mb": 0,
+            "context_length": 8192,
+            "parameter_size": "3.8B",
+            "memory_measurement_error": null,
+            "wall_seconds": 93.10390827700002,
+            "total_seconds": 93.093562174,
+            "load_seconds": 10.923763157,
+            "prompt_seconds": 15.29167,
+            "generation_seconds": 66.865331,
+            "prompt_tokens": 191,
+            "output_tokens": 319,
+            "prompt_tokens_per_second": 12.490460492542672,
+            "generation_tokens_per_second": 4.770783232943242
+          },
+          "answer": "a) Um resumo do funcionamento esperado:\nO sistema permite aos agentes locais registrar diferentes projetos, cada um com seu próprio diretório raiz. Esses projetos podem ter várias sessões de conversa, onde as mensagens são armazenadas de forma persistente em um banco de dados SQLite. Os agentes têm acesso restrito para consultar arquivos, apenas dentro do diretório raiz autorizado. As tarefas são gerenciadas a partir de um documento EAP.md, garantindo que a sincronização com o EAP não repita tarefas ou elimine estados existentes.\n\nb) Requisitos verificáveis:\n1. O sistema permite o cadastro de novos projetos pelos agentes locais.\n2. Cada projeto é associado a um único diretório raiz.\n3. Um projeto pode conter múltiplas sessões de conversa.\n4. As mensagens das sessões de conversa são armazenadas de forma persistente em SQLite.\n5. Os agentes têm acesso restrito para consultar arquivos, limitado ao diretório raiz autorizado.\n6. As tarefas são carregadas a partir de um documento EAP.md.\n7. A sincronização com o EAP.md não repete tarefas nem remove estados já registrados.\n\nc) Riscos ou ambiguidades:\n1. Não está claro como os direitos de acesso aos diretórios raiz são gerenciados, o que pode levar a problemas de segurança.\n2. Não são especificados os mecanismos de controle de versão para as sessões de conversa, o que pode causar conflitos ou perda de dados.\n3. A semelhança entre o documento EAP.md e outros arquivos pode levar a confusão ou erros de carregamento de tarefas.",
+          "done_reason": "stop"
+        }
+      ]
+    }
+  ]
+}

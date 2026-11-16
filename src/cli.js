@@ -6,7 +6,8 @@ const {
     listProjects: defaultListProjects,
     getSession: defaultGetSession,
     getProject: defaultGetProject,
-    listTasks: defaultListTasks
+    listTasks: defaultListTasks,
+    saveMessage: defaultSaveMessage
 } = require('./database');
 
 const {
@@ -238,7 +239,8 @@ async function startCLI({
     readEAP = defaultReadEAP,
     parseEAP = defaultParseEAP,
     calculateProgress = defaultCalculateProgress,
-    approveProposal = defaultApproveProposal
+    approveProposal = defaultApproveProposal,
+    saveMessage = defaultSaveMessage
 } = {}) {
     if (typeof runAgent !== 'function') {
         return {
@@ -270,11 +272,12 @@ async function startCLI({
         typeof readEAP !== 'function' ||
 	typeof parseEAP !== 'function' ||
 	typeof calculateProgress !== 'function' ||
-	typeof approveProposal !== 'function'
+	typeof approveProposal !== 'function' ||
+	typeof saveMessage !== 'function'
     ) {
         return {
             success: false,
-            message: 'Funções de consulta do projeto inválidas.'
+            message: 'Funções de consulta ou persistência inválidas.'
         };
     }
 
@@ -438,42 +441,98 @@ async function startCLI({
             }
             
             // Aprovar proposta pendente
-	    if (userMessage === '/aprovar' || userMessage === '/rejeitar') {
-	        if (!pendingProposal) {
-		    output.write('Não existe proposta pendente.\n');
-		    output.write(prompt);
-		    continue;
-	        }
+            if (userMessage === '/aprovar' || userMessage === '/rejeitar') {
+                if (!pendingProposal) {
+                    output.write('Não existe proposta pendente.\n');
+                    output.write(prompt);
+                    continue;
+                }
 
-	        const decision = userMessage === '/aprovar'
-		    ? 'approve'
-		    : 'reject';
+                const decision = userMessage === '/aprovar'
+                    ? 'approve'
+                    : 'reject';
 
-	        try {
-		    const result = approveProposal(
-		        pendingProposal,
-		        decision,
-		        currentProject.root_path
-		    );
+                const operationName =
+                    pendingProposal.name || 'operação não identificada';
+                const operationPath = pendingProposal.arguments?.path;
+                const proposalDescription = operationPath
+                    ? `${operationName} (${operationPath})`
+                    : operationName;
 
-		    if (!result.success) {
-		        output.write(`Erro na decisão: ${result.message}\n`);
-		    } else if (result.status === 'rejected') {
-		        output.write('Proposta rejeitada. Nenhuma alteração foi realizada.\n');
-		    } else {
-		        output.write(`${result.message}\n`);
-		    }
+                const decisionLabel = decision === 'approve'
+                    ? 'aprovação'
+                    : 'rejeição';
 
-	        } catch (error) {
-		    output.write(`Erro ao processar decisão: ${error.message}\n`);
+                let historyContent = '';
 
-	        } finally {
-		    pendingProposal = null;
-	        }
+                try {
+                    const result = approveProposal(
+                        pendingProposal,
+                        decision,
+                        currentProject.root_path
+                    );
 
-	        output.write(prompt);
-	        continue;
-	    }
+                    if (!result || typeof result !== 'object') {
+                        output.write('Erro na decisão: retorno inválido.\n');
+                        historyContent =
+                            `A ${decisionLabel} da proposta "${proposalDescription}" ` +
+                            'retornou um resultado inválido.';
+                    } else if (!result.success) {
+                        output.write(
+                            `Erro na decisão: ${result.message || 'Falha não especificada.'}\n`
+                        );
+                        historyContent =
+                            `A solicitação de ${decisionLabel} da proposta ` +
+                            `"${proposalDescription}" não foi concluída: ` +
+                            `${result.message || 'falha não especificada.'}`;
+                    } else if (decision === 'reject') {
+                        output.write(
+                            'Proposta rejeitada. Nenhuma alteração foi realizada.\n'
+                        );
+                        historyContent =
+                            `O usuário rejeitou a proposta "${proposalDescription}". ` +
+                            'Nenhuma alteração foi realizada.';
+                    } else {
+                        output.write(`${result.message || 'Operação concluída.'}\n`);
+                        historyContent =
+                            `O usuário aprovou a proposta "${proposalDescription}". ` +
+                            `Resultado: ${result.status || 'concluída'}. ` +
+                            `${result.message || ''}`.trim();
+                    }
+
+                } catch (error) {
+                    output.write(`Erro ao processar decisão: ${error.message}\n`);
+                    historyContent =
+                        `A solicitação de ${decisionLabel} da proposta ` +
+                        `"${proposalDescription}" gerou uma exceção: ${error.message}`;
+
+                } finally {
+                    pendingProposal = null;
+                }
+
+                // Registrar o desfecho no histórico da sessão
+                try {
+                    const saveResult = saveMessage(
+                        sessionId,
+                        'assistant',
+                        historyContent
+                    );
+
+                    if (!saveResult || !saveResult.success) {
+                        output.write(
+                            'Aviso: não foi possível registrar o resultado no histórico: ' +
+                            `${saveResult?.message || 'retorno inválido.'}\n`
+                        );
+                    }
+                } catch (error) {
+                    output.write(
+                        `Aviso: erro ao registrar o resultado no histórico: ${error.message}\n`
+                    );
+                }
+
+                output.write(prompt);
+                continue;
+            }
 
 	    // Comandos internos
             if (userMessage === '/projetos') {

@@ -78,6 +78,10 @@ const cliDependencies = {
     loadTask: () => ({
         success: true,
         task: { code: 'T018' }
+    }),
+
+    saveMessage: () => ({
+        success: true
     })
 };
 
@@ -900,6 +904,7 @@ test('Deve apresentar, bloquear e aprovar uma proposta pendente', async () => {
     };
 
     const agentMessages = [];
+    const persistedMessages = [];
     let approvalParams;
 
     const result = await startCLI({
@@ -936,9 +941,29 @@ test('Deve apresentar, bloquear e aprovar uma proposta pendente', async () => {
             };
         },
 
+        saveMessage: (...params) => {
+            persistedMessages.push(params);
+            return { success: true };
+        },
+
         model: 'qwen3:4b',
         sessionId: 1,
         ...cliDependencies,
+        
+        approveProposal: (...params) => {
+            approvalParams = params;
+
+            return {
+                success: true,
+                status: 'created',
+                message: 'Arquivo criado com sucesso.'
+            };
+        },
+
+        saveMessage: (...params) => {
+            persistedMessages.push(params);
+            return { success: true };
+        },
         input,
         output
     });
@@ -955,6 +980,13 @@ test('Deve apresentar, bloquear e aprovar uma proposta pendente', async () => {
         'approve',
         '/tmp/projeto-teste'
     ]);
+
+    assert.equal(persistedMessages.length, 1);
+    assert.equal(persistedMessages[0][0], 1);
+    assert.equal(persistedMessages[0][1], 'assistant');
+    assert.match(persistedMessages[0][2], /aprovou a proposta/);
+    assert.match(persistedMessages[0][2], /src\/example.js/);
+    assert.match(persistedMessages[0][2], /created/);
 
     const content = getContent();
 
@@ -984,6 +1016,7 @@ test('Deve rejeitar uma proposta sem executar a operação', async () => {
     };
 
     const agentMessages = [];
+    const persistedMessages = [];
     let approvalParams;
 
     const result = await startCLI({
@@ -1020,9 +1053,29 @@ test('Deve rejeitar uma proposta sem executar a operação', async () => {
             };
         },
 
+        saveMessage: (...params) => {
+            persistedMessages.push(params);
+            return { success: true };
+        },
+
         model: 'qwen3:4b',
         sessionId: 1,
         ...cliDependencies,
+        
+        approveProposal: (...params) => {
+            approvalParams = params;
+
+            return {
+                success: true,
+                status: 'created',
+                message: 'Arquivo criado com sucesso.'
+            };
+        },
+
+        saveMessage: (...params) => {
+            persistedMessages.push(params);
+            return { success: true };
+        },
         input,
         output
     });
@@ -1040,11 +1093,98 @@ test('Deve rejeitar uma proposta sem executar a operação', async () => {
         '/tmp/projeto-teste'
     ]);
 
+    assert.equal(persistedMessages.length, 1);
+    assert.equal(persistedMessages[0][0], 1);
+    assert.equal(persistedMessages[0][1], 'assistant');
+    assert.match(persistedMessages[0][2], /rejeitou a proposta/);
+    assert.match(persistedMessages[0][2], /Nenhuma alteração foi realizada/);
+
     const content = getContent();
 
     assert.match(content, /Proposta rejeitada/);
     assert.match(content, /Nenhuma alteração foi realizada/);
     assert.match(content, /Conversa retomada/);
+});
+
+test('Deve avisar quando falhar ao persistir o resultado da aprovação', async () => {
+    const input = Readable.from([
+        'Criar um arquivo\n',
+        '/aprovar\n'
+    ]);
+
+    const { output, getContent } = createOutput();
+
+    const proposal = {
+        name: 'create_file',
+        arguments: {
+            path: 'src/example.js',
+            content: 'console.log("Olá");'
+        }
+    };
+
+    let approvalCalls = 0;
+    let persistenceCalls = 0;
+
+    const result = await startCLI({
+        runAgent: async () => ({
+            success: true,
+            type: 'proposal',
+            response: {
+                message: 'Proposta de criação.'
+            },
+            proposal
+        }),
+
+        approveProposal: () => {
+            approvalCalls++;
+            return {
+                success: true,
+                status: 'created',
+                message: 'Arquivo criado com sucesso.'
+            };
+        },
+
+        saveMessage: () => {
+            persistenceCalls++;
+            return {
+                success: false,
+                message: 'Falha simulada no banco.'
+            };
+        },
+
+        model: 'qwen3:4b',
+        sessionId: 1,
+        ...cliDependencies,
+        
+        approveProposal: () => {
+            approvalCalls++;
+            return {
+                success: true,
+                status: 'created',
+                message: 'Arquivo criado com sucesso.'
+            };
+        },
+
+        saveMessage: () => {
+            persistenceCalls++;
+            return {
+                success: false,
+                message: 'Falha simulada no banco.'
+            };
+        },
+        input,
+        output
+    });
+
+    assert.equal(result.success, true);
+    assert.equal(approvalCalls, 1);
+    assert.equal(persistenceCalls, 1);
+
+    const content = getContent();
+
+    assert.match(content, /Arquivo criado com sucesso/);
+    assert.match(content, /não foi possível registrar o resultado no histórico/);
+    assert.match(content, /Falha simulada no banco/);
 });
 
 test('Deve rejeitar comandos de decisão sem proposta pendente', async () => {
@@ -1306,9 +1446,19 @@ test('Deve identificar comandos desconhecidos sem chamar o agente', async () => 
         },
         model: 'qwen3:4b',
         sessionId: 1,
-        ...cliDependencies,
-        input,
-        output
+        ...cliDependencies,        
+
+	approveProposal: (...params) => {
+	    // implementação simulada do teste
+	},
+
+	saveMessage: (...params) => {
+	    persistedMessages.push(params);
+	    return { success: true };
+	},
+
+	input,
+	output        
     });
 
     assert.equal(result.success, true);
